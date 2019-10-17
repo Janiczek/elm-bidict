@@ -6,6 +6,6 @@ import Set exposing (Set)
 
 type MultiBiDict comparable1 comparable2
     = MultiBiDict
-        { dict : Dict comparable1 (Set comparable2)
-        , inverse : Dict comparable2 (Set comparable1)
+        { forward : Dict comparable1 (Set comparable2)
+        , reverse : Dict comparable2 (Set comparable1)
         }

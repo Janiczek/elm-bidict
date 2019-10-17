@@ -6,16 +6,16 @@ import Set exposing (Set)
 
 type BiDict comparable1 comparable2
     = BiDict
-        { dict : Dict comparable1 comparable2
-        , inverse : Dict comparable2 (Set comparable1)
+        { forward : Dict comparable1 comparable2
+        , reverse : Dict comparable2 (Set comparable1)
         }
 
 
 empty : BiDict comparable1 comparable2
 empty =
     BiDict
-        { dict = Dict.empty
-        , inverse = Dict.empty
+        { forward = Dict.empty
+        , reverse = Dict.empty
         }
 
 
@@ -23,8 +23,8 @@ insert : comparable1 -> comparable2 -> BiDict comparable1 comparable2 -> BiDict 
 insert from to (BiDict d) =
     BiDict
         { d
-            | dict = Dict.insert from to d.dict
-            , inverse = Dict.update to (Maybe.withDefault Set.empty >> Set.insert from >> Just) d.inverse
+            | forward = Dict.insert from to d.forward
+            , reverse = Dict.update to (Maybe.withDefault Set.empty >> Set.insert from >> Just) d.reverse
         }
 
 
@@ -32,28 +32,28 @@ remove : comparable1 -> BiDict comparable1 comparable2 -> BiDict comparable1 com
 remove from (BiDict d) =
     BiDict
         { d
-            | dict = Dict.remove from d.dict
-            , inverse = Dict.map (Set.remove from) d.inverse
+            | forward = Dict.remove from d.forward
+            , reverse = Dict.map (\_ set -> Set.remove from set) d.reverse
         }
 
 
 toList : BiDict comparable1 comparable2 -> List ( comparable1, comparable2 )
 toList (BiDict d) =
-    Dict.toList d.dict
+    Dict.toList d.forward
 
 
-toInverseList : BiDict comparable1 comparable2 -> List ( comparable2, Set comparable1 )
-toInverseList (BiDict d) =
-    d.inverse
+toreverseList : BiDict comparable1 comparable2 -> List ( comparable2, Set comparable1 )
+toreverseList (BiDict d) =
+    d.reverse
         |> Dict.filter (\_ v -> not (Set.isEmpty v))
         |> Dict.toList
 
 
 keys : BiDict comparable1 comparable2 -> List comparable1
 keys (BiDict d) =
-    Dict.keys d.dict
+    Dict.keys d.forward
 
 
 values : BiDict comparable1 comparable2 -> List comparable2
 values (BiDict d) =
-    Dict.values d.dict
+    Dict.values d.forward

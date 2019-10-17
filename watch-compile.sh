@@ -7,8 +7,8 @@ LOCKNAME=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 16);
 LOCKFILE="/tmp/elm-lock-${LOCKNAME}"
 
 function compile {
-  elm-master make src/*.elm --output /dev/null;
-  yarn elm-test --compiler ~/.bin/elm-master;
+  elm-master make --docs docs.json --output /dev/null;
+  #yarn elm-test --compiler ~/.bin/elm-master;
 }
 
 function run {
@@ -29,6 +29,6 @@ function run {
 
 run;
 
-inotifywait -mqr -e close_write --format '%w %e %f' **/*.elm | while read DIR EVENT FILE; do
+inotifywait -mqr -e close_write --format '%w %e %f' src | while read DIR EVENT FILE; do
   run;
 done;
