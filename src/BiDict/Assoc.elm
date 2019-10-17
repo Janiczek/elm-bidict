@@ -1,5 +1,6 @@
 module BiDict.Assoc exposing
     ( BiDict
+    , getReverse, sizeReverse, uniqueValues, toReverseList, fromReverseList
     , empty, singleton, insert, update, remove
     , isEmpty, member, get, size
     , keys, values, toList, fromList
@@ -17,6 +18,11 @@ get rid of the `comparable` constraint on keys that's usually associated with Di
 # Dictionaries
 
 @docs BiDict
+
+
+# Differences from Dict
+
+@docs getReverse, sizeReverse, uniqueValues, toReverseList, fromReverseList
 
 
 # Build
@@ -51,6 +57,14 @@ import AssocSet as Set exposing (Set)
 
 
 -- TODO think about all the possible handy `reverse` functions
+{-
+
+   A -> 1    1 -> [A, C]
+   B -> 2    2 -> [B]
+   C -> 1
+
+
+-}
 
 
 {-| TODO
@@ -138,9 +152,24 @@ get from (BiDict d) =
 
 {-| TODO
 -}
+getReverse : b -> BiDict a b -> Set a
+getReverse to (BiDict d) =
+    Dict.get to d.reverse
+        |> Maybe.withDefault Set.empty
+
+
+{-| TODO
+-}
 size : BiDict a b -> Int
 size (BiDict d) =
     Dict.size d.forward
+
+
+{-| TODO
+-}
+sizeReverse : BiDict a b -> Int
+sizeReverse (BiDict d) =
+    Dict.size d.reverse
 
 
 {-| TODO
@@ -159,9 +188,23 @@ values (BiDict d) =
 
 {-| TODO
 -}
+uniqueValues : BiDict a b -> List b
+uniqueValues (BiDict d) =
+    Dict.keys d.reverse
+
+
+{-| TODO
+-}
 toList : BiDict a b -> List ( a, b )
 toList (BiDict d) =
     Dict.toList d.forward
+
+
+{-| TODO
+-}
+toReverseList : BiDict a b -> List ( b, Set a )
+toReverseList (BiDict d) =
+    Dict.toList d.reverse
 
 
 {-| TODO
@@ -171,6 +214,16 @@ fromList list =
     BiDict
         { forward = Dict.fromList list
         , reverse = Debug.todo "fromList.reverse"
+        }
+
+
+{-| TODO
+-}
+fromReverseList : List ( b, Set a ) -> BiDict a b
+fromReverseList list =
+    BiDict
+        { forward = Debug.todo "fromReverseList.forward"
+        , reverse = Dict.fromList list
         }
 
 
@@ -271,8 +324,8 @@ merge :
     (a -> b1 -> acc -> acc)
     -> (a -> b1 -> b2 -> acc -> acc)
     -> (a -> b2 -> acc -> acc)
-    -> Dict a b1
-    -> Dict a b2
+    -> BiDict a b1
+    -> BiDict a b2
     -> acc
     -> acc
 merge fnLeft fnBoth fnRight left right zero =

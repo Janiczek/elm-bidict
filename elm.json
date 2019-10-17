@@ -6,9 +6,7 @@
     "version": "1.0.0",
     "exposed-modules": [
         "BiDict",
-        "BiDict.Assoc",
-        "MultiBiDict",
-        "MultiBiDict.Assoc"
+        "BiDict.Assoc"
     ],
     "elm-version": "0.19.0 <= v < 0.20.0",
     "dependencies": {
