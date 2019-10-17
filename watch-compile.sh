@@ -29,6 +29,6 @@ function run {
 
 run;
 
-inotifywait -mqr -e close_write --format '%w %e %f' src | while read DIR EVENT FILE; do
+inotifywait -mqr -e close_write --format '%w %e %f' src tests | while read DIR EVENT FILE; do
   run;
 done;

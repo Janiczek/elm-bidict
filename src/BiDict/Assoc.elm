@@ -1,6 +1,6 @@
 module BiDict.Assoc exposing
     ( BiDict
-    , getReverse, sizeReverse, uniqueValues, toReverseList, fromReverseList
+    , fromDict, getReverse, sizeReverse, uniqueValues, toReverseList
     , empty, singleton, insert, update, remove
     , isEmpty, member, get, size
     , keys, values, toList, fromList
@@ -22,7 +22,7 @@ get rid of the `comparable` constraint on keys that's usually associated with Di
 
 # Differences from Dict
 
-@docs getReverse, sizeReverse, uniqueValues, toReverseList, fromReverseList
+@docs fromDict, getReverse, sizeReverse, uniqueValues, toReverseList
 
 
 # Build
@@ -52,6 +52,7 @@ get rid of the `comparable` constraint on keys that's usually associated with Di
 -}
 
 import AssocList as Dict exposing (Dict)
+import AssocList.Extra as DictExtra
 import AssocSet as Set exposing (Set)
 
 
@@ -103,7 +104,25 @@ insert from to (BiDict d) =
     BiDict
         { d
             | forward = Dict.insert from to d.forward
-            , reverse = Dict.update to (Maybe.withDefault Set.empty >> Set.insert from >> Just) d.reverse
+            , reverse =
+                let
+                    oldTo =
+                        Dict.get from d.forward
+
+                    reverseWithoutOld =
+                        case oldTo of
+                            Nothing ->
+                                d.reverse
+
+                            Just oldTo_ ->
+                                d.reverse
+                                    |> Dict.update oldTo_
+                                        (Maybe.map (Set.remove from)
+                                            >> Maybe.andThen normalizeSet
+                                        )
+                in
+                reverseWithoutOld
+                    |> Dict.update to (Maybe.withDefault Set.empty >> Set.insert from >> Just)
         }
 
 
@@ -111,11 +130,20 @@ insert from to (BiDict d) =
 -}
 update : a -> (Maybe b -> Maybe b) -> BiDict a b -> BiDict a b
 update from fn (BiDict d) =
-    BiDict
-        { d
-            | forward = Dict.update from fn d.forward
-            , reverse = Debug.todo "update.reverse"
-        }
+    Dict.update from fn d.forward
+        |> fromDict
+
+
+{-| In our model, (Just Set.empty) has the same meaning as Nothing.
+Make it be Nothing!
+-}
+normalizeSet : Set a -> Maybe (Set a)
+normalizeSet set =
+    if Set.isEmpty set then
+        Nothing
+
+    else
+        Just set
 
 
 {-| TODO
@@ -125,7 +153,7 @@ remove from (BiDict d) =
     BiDict
         { d
             | forward = Dict.remove from d.forward
-            , reverse = Dict.map (\_ set -> Set.remove from set) d.reverse
+            , reverse = DictExtra.filterMap (\_ set -> Set.remove from set |> normalizeSet) d.reverse
         }
 
 
@@ -211,29 +239,42 @@ toReverseList (BiDict d) =
 -}
 fromList : List ( a, b ) -> BiDict a b
 fromList list =
-    BiDict
-        { forward = Dict.fromList list
-        , reverse = Debug.todo "fromList.reverse"
-        }
-
-
-{-| TODO
--}
-fromReverseList : List ( b, Set a ) -> BiDict a b
-fromReverseList list =
-    BiDict
-        { forward = Debug.todo "fromReverseList.forward"
-        , reverse = Dict.fromList list
-        }
+    Dict.fromList list
+        |> fromDict
 
 
 {-| TODO
 -}
 map : (a -> b1 -> b2) -> BiDict a b1 -> BiDict a b2
 map fn (BiDict d) =
+    -- TODO diff instead of throwing away and creating from scratch?
+    Dict.map fn d.forward
+        |> fromDict
+
+
+{-| TODO
+-}
+fromDict : Dict a b -> BiDict a b
+fromDict forward =
     BiDict
-        { forward = Dict.map fn d.forward
-        , reverse = Debug.todo "map.reverse"
+        { forward = forward
+        , reverse =
+            forward
+                |> Dict.foldl
+                    (\key value acc ->
+                        Dict.update value
+                            (\maybeKeys ->
+                                Just <|
+                                    case maybeKeys of
+                                        Nothing ->
+                                            Set.singleton key
+
+                                        Just keys_ ->
+                                            Set.insert key keys_
+                            )
+                            acc
+                    )
+                    Dict.empty
         }
 
 
@@ -257,11 +298,9 @@ foldr fn zero (BiDict d) =
 -}
 filter : (a -> b -> Bool) -> BiDict a b -> BiDict a b
 filter fn (BiDict d) =
-    BiDict
-        { d
-            | forward = Dict.filter fn d.forward
-            , reverse = Debug.todo "filter.reverse"
-        }
+    -- TODO diff instead of throwing away and creating from scratch?
+    Dict.filter fn d.forward
+        |> fromDict
 
 
 {-| TODO
@@ -292,30 +331,27 @@ partition fn (BiDict d) =
 -}
 union : BiDict a b -> BiDict a b -> BiDict a b
 union (BiDict left) (BiDict right) =
-    BiDict
-        { forward = Dict.union left.forward right.forward
-        , reverse = Debug.todo "union.reverse"
-        }
+    -- TODO diff instead of throwing away and creating from scratch?
+    Dict.union left.forward right.forward
+        |> fromDict
 
 
 {-| TODO
 -}
 intersect : BiDict a b -> BiDict a b -> BiDict a b
 intersect (BiDict left) (BiDict right) =
-    BiDict
-        { forward = Dict.intersect left.forward right.forward
-        , reverse = Debug.todo "intersect.reverse"
-        }
+    -- TODO diff instead of throwing away and creating from scratch?
+    Dict.intersect left.forward right.forward
+        |> fromDict
 
 
 {-| TODO
 -}
 diff : BiDict a b -> BiDict a b -> BiDict a b
 diff (BiDict left) (BiDict right) =
-    BiDict
-        { forward = Dict.diff left.forward right.forward
-        , reverse = Debug.todo "diff.reverse"
-        }
+    -- TODO diff instead of throwing away and creating from scratch?
+    Dict.diff left.forward right.forward
+        |> fromDict
 
 
 {-| TODO
