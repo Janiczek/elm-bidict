@@ -8,7 +8,7 @@ LOCKFILE="/tmp/elm-lock-${LOCKNAME}"
 
 function compile {
   elm-master make --docs docs.json --output /dev/null;
-  #yarn elm-test --compiler ~/.bin/elm-master;
+  yarn elm-test --compiler ~/.bin/elm-master;
 }
 
 function run {
