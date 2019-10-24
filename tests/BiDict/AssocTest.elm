@@ -1,6 +1,7 @@
 module BiDict.AssocTest exposing (..)
 
 import ArchitectureTest exposing (invariantTest, msgTest)
+import AssocList as Dict exposing (Dict)
 import AssocSet as Set
 import BiDict.Assoc as BiDict exposing (BiDict)
 import Expect exposing (Expectation)
@@ -85,6 +86,34 @@ update msg bidict =
 
         Diff bidict2 ->
             BiDict.diff bidict bidict2
+
+
+msgToDictMsg : Msg -> Dict a b -> Dict a b
+msgToDictMsg msg dict =
+    case msg of
+        Insert k v ->
+            Dict.insert k v dict
+
+        UpdateAdd k v ->
+            Dict.update k (Maybe.map ((+) v)) dict
+
+        Remove k ->
+            Dict.remove k dict
+
+        MapAdd n ->
+            Dict.map (\_ v -> v + n) dict
+
+        FilterLessThan n ->
+            Dict.filter (\_ v -> v < n) dict
+
+        Union bidict2 ->
+            Dict.union dict (BiDict.toDict bidict2)
+
+        Intersect bidict2 ->
+            Dict.intersect dict (BiDict.toDict bidict2)
+
+        Diff bidict2 ->
+            Dict.diff dict (BiDict.toDict bidict2)
 
 
 modelToString : Model -> String
@@ -195,11 +224,17 @@ msgFuzzer =
 -- TESTS
 
 
+expectEqualToDict : Dict a b -> BiDict a b -> Expectation
+expectEqualToDict dict bidict =
+    BiDict.toList bidict
+        |> Expect.equalLists (Dict.toList dict)
+
+
 suite : Test
 suite =
     describe "BiDict.Assoc"
         [ describe "invariants" <|
-            [ invariantTest "reverse dict follows forward dict properly" app <|
+            [ invariantTest "reverse dict reflects forward dict properly" app <|
                 \_ _ finalBidict ->
                     BiDict.size finalBidict
                         |> Expect.equal
@@ -212,6 +247,25 @@ suite =
                     BiDict.toReverseList finalBidict
                         |> List.all (\( _, set ) -> not (Set.isEmpty set))
                         |> Expect.true ""
+            , invariantTest "behaves like dict" app <|
+                \initialBidict msgs finalBidict ->
+                    let
+                        initialDict : Dict a b
+                        initialDict =
+                            BiDict.toDict initialBidict
+
+                        dictMsgFns : List (Dict a b -> Dict a b)
+                        dictMsgFns =
+                            List.map msgToDictMsg msgs
+
+                        finalDict : Dict a b
+                        finalDict =
+                            List.foldl
+                                (\dict msgFn -> msgFn dict)
+                                initialDict
+                                dictMsgFns
+                    in
+                    1
             ]
         , describe "empty"
             [ test "has size 0" <|

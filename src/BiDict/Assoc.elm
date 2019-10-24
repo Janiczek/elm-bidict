@@ -1,6 +1,6 @@
 module BiDict.Assoc exposing
     ( BiDict
-    , fromDict, getReverse, sizeReverse, uniqueValues, toReverseList
+    , toDict, fromDict, getReverse, sizeReverse, uniqueValues, toReverseList
     , empty, singleton, insert, update, remove
     , isEmpty, member, get, size
     , keys, values, toList, fromList
@@ -22,7 +22,7 @@ get rid of the `comparable` constraint on keys that's usually associated with Di
 
 # Differences from Dict
 
-@docs fromDict, getReverse, sizeReverse, uniqueValues, toReverseList
+@docs toDict, fromDict, getReverse, sizeReverse, uniqueValues, toReverseList
 
 
 # Build
@@ -250,6 +250,13 @@ map fn (BiDict d) =
     -- TODO diff instead of throwing away and creating from scratch?
     Dict.map fn d.forward
         |> fromDict
+
+
+{-| TODO
+-}
+toDict : BiDict a b -> Dict a b
+toDict (BiDict d) =
+    d.forward
 
 
 {-| TODO
