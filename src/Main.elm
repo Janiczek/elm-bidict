@@ -7,6 +7,8 @@ type BiDict a
     = BiDict
 
 
+{-| remove this annotation and it starts working
+-}
 toDict : BiDict a -> Dict a b
 toDict BiDict =
     Dict.empty
@@ -14,15 +16,9 @@ toDict BiDict =
 
 fn value =
     let
+        -- remove this type annotation and it starts working
         initialDict : Dict a b
         initialDict =
             toDict value
-
-        finalDict : Dict a b
-        finalDict =
-            List.foldl
-                (\dict msgFn -> msgFn dict)
-                initialDict
-                []
     in
     ()
