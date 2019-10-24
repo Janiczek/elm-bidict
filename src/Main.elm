@@ -1,6 +1,6 @@
 module Main exposing (BiDict, toDict)
 
-import AssocList as Dict exposing (Dict)
+import Dict exposing (Dict)
 
 
 type BiDict a
