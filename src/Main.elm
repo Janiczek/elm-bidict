@@ -1,24 +1,26 @@
-module Main exposing (BiDict, toDict)
+module Main exposing (Foo)
 
 import Dict exposing (Dict)
 
 
-type BiDict a
-    = BiDict
+{-| remove this type parameter and it starts working
+-}
+type Foo a
+    = Foo
 
 
 {-| remove this annotation and it starts working
 -}
-toDict : BiDict a -> Dict a b
-toDict BiDict =
+toDict : Foo a -> Dict a b
+toDict Foo =
     Dict.empty
 
 
 fn value =
     let
         -- remove this type annotation and it starts working
-        initialDict : Dict a b
-        initialDict =
+        dict : Dict a b
+        dict =
             toDict value
     in
     ()
