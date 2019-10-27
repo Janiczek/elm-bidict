@@ -8,11 +8,25 @@ module BiDict.Assoc exposing
     , union, intersect, diff, merge
     )
 
-{-| A bidirectional dictionary mapping unique keys to values, and that maintains
-a mapping from the values back to keys.
+{-| A bidirectional dictionary mapping unique keys to values, which **maintains
+a mapping from the values back to keys.**
 
-Uses [`assoc-list`](https://package.elm-lang.org/packages/pzp1997/assoc-list/latest/) and [`assoc-set`](https://package.elm-lang.org/packages/erlandsona/assoc-set/latest/) under the hood to
-get rid of the `comparable` constraint on keys that's usually associated with Dicts and Sets.
+You'll most likely use `getReverse` for that:
+
+    myMapping : BiDict String Int
+    myMapping =
+        BiDict.empty
+            |> BiDict.insert "A" 1
+            |> BiDict.insert "B" 2
+            |> BiDict.insert "C" 1
+            |> BiDict.insert "D" 4
+
+    BiDict.getReverse 1 myMapping
+    --> Set.fromList ["A", "C"]
+
+This module in particular uses [`assoc-list`](https://package.elm-lang.org/packages/pzp1997/assoc-list/latest/) and [`assoc-set`](https://package.elm-lang.org/packages/erlandsona/assoc-set/latest/)
+under the hood to get rid of the `comparable` constraint on keys that's usually
+associated with Dicts and Sets.
 
 
 # Dictionaries
@@ -56,19 +70,15 @@ import AssocList.Extra as DictExtra
 import AssocSet as Set exposing (Set)
 
 
+{-| A dictionary that allows asking for the mappings in reverse direction.
 
--- TODO think about all the possible handy `reverse` functions
-{-
+Think about it as
 
-   A -> 1    1 -> [A, C]
-   B -> 2    2 -> [B]
-   C -> 1
+    type alias BiDict a b =
+        { forward : Dict a b -- just a normal Dict!
+        , reverse : Dict b (Set a) -- the reverse mappings!
+        }
 
-
--}
-
-
-{-| TODO
 -}
 type BiDict a b
     = BiDict
@@ -77,7 +87,7 @@ type BiDict a b
         }
 
 
-{-| TODO
+{-| Create an empty dictionary.
 -}
 empty : BiDict a b
 empty =
@@ -87,7 +97,7 @@ empty =
         }
 
 
-{-| TODO
+{-| Create a dictionary with one key-value pair.
 -}
 singleton : a -> b -> BiDict a b
 singleton from to =
@@ -97,7 +107,8 @@ singleton from to =
         }
 
 
-{-| TODO
+{-| Insert a key-value pair into a dictionary. Replaces value when there is
+a collision.
 -}
 insert : a -> b -> BiDict a b -> BiDict a b
 insert from to (BiDict d) =
@@ -126,7 +137,7 @@ insert from to (BiDict d) =
         }
 
 
-{-| TODO
+{-| Update the value of a dictionary for a specific key with a given function.
 -}
 update : a -> (Maybe b -> Maybe b) -> BiDict a b -> BiDict a b
 update from fn (BiDict d) =
@@ -146,7 +157,8 @@ normalizeSet set =
         Just set
 
 
-{-| TODO
+{-| Remove a key-value pair from a dictionary. If the key is not found,
+no changes are made.
 -}
 remove : a -> BiDict a b -> BiDict a b
 remove from (BiDict d) =
@@ -157,28 +169,41 @@ remove from (BiDict d) =
         }
 
 
-{-| TODO
+{-| Determine if a dictionary is empty.
+
+    isEmpty empty == True
+
 -}
 isEmpty : BiDict a b -> Bool
 isEmpty (BiDict d) =
     Dict.isEmpty d.forward
 
 
-{-| TODO
+{-| Determine if a key is in a dictionary.
 -}
 member : a -> BiDict a b -> Bool
 member from (BiDict d) =
     Dict.member from d.forward
 
 
-{-| TODO
+{-| Get the value associated with a key. If the key is not found, return
+`Nothing`. This is useful when you are not sure if a key will be in the
+dictionary.
+
+    animals = fromList [ ("Tom", Cat), ("Jerry", Mouse) ]
+
+    get "Tom"   animals == Just Cat
+    get "Jerry" animals == Just Mouse
+    get "Spike" animals == Nothing
+
 -}
 get : a -> BiDict a b -> Maybe b
 get from (BiDict d) =
     Dict.get from d.forward
 
 
-{-| TODO
+{-| Get the keys associated with a value. If the value is not found,
+return an empty set.
 -}
 getReverse : b -> BiDict a b -> Set a
 getReverse to (BiDict d) =
@@ -186,56 +211,62 @@ getReverse to (BiDict d) =
         |> Maybe.withDefault Set.empty
 
 
-{-| TODO
+{-| Determine the number of key-value pairs in the dictionary.
 -}
 size : BiDict a b -> Int
 size (BiDict d) =
     Dict.size d.forward
 
 
-{-| TODO
+{-| Get all of the keys in a dictionary, sorted from lowest to highest.
+
+    keys (fromList [ ( 0, "Alice" ), ( 1, "Bob" ) ]) == [ 0, 1 ]
+
 -}
 keys : BiDict a b -> List a
 keys (BiDict d) =
     Dict.keys d.forward
 
 
-{-| TODO
+{-| Get all of the values in a dictionary, in the order of their keys.
+
+    values (fromList [ ( 0, "Alice" ), ( 1, "Bob" ) ]) == [ "Alice", "Bob" ]
+
 -}
 values : BiDict a b -> List b
 values (BiDict d) =
     Dict.values d.forward
 
 
-{-| TODO
+{-| Get a list of unique values in the dictionary.
 -}
 uniqueValues : BiDict a b -> List b
 uniqueValues (BiDict d) =
     Dict.keys d.reverse
 
 
-{-| TODO
+{-| Get a count of unique values in the dictionary.
 -}
 uniqueValuesCount : BiDict a b -> Int
 uniqueValuesCount (BiDict d) =
     Dict.size d.reverse
 
 
-{-| TODO
+{-| Convert a dictionary into an association list of key-value pairs, sorted by keys.
 -}
 toList : BiDict a b -> List ( a, b )
 toList (BiDict d) =
     Dict.toList d.forward
 
 
-{-| TODO
+{-| Convert a dictionary into a reverse association list of value-keys pairs.
 -}
 toReverseList : BiDict a b -> List ( b, Set a )
 toReverseList (BiDict d) =
     Dict.toList d.reverse
 
 
-{-| TODO
+{-| Convert an association list into a dictionary.
 -}
 fromList : List ( a, b ) -> BiDict a b
 fromList list =
@@ -243,7 +274,7 @@ fromList list =
         |> fromDict
 
 
-{-| TODO
+{-| Apply a function to all values in a dictionary.
 -}
 map : (a -> b1 -> b2) -> BiDict a b1 -> BiDict a b2
 map fn (BiDict d) =
@@ -252,14 +283,14 @@ map fn (BiDict d) =
         |> fromDict
 
 
-{-| TODO
+{-| Convert BiDict into a Dict. (Throw away the reverse mapping.)
 -}
 toDict : BiDict a b -> Dict a b
 toDict (BiDict d) =
     d.forward
 
 
-{-| TODO
+{-| Convert Dict into a BiDict. (Compute the reverse mapping.)
 -}
 fromDict : Dict a b -> BiDict a b
 fromDict forward =
@@ -285,23 +316,41 @@ fromDict forward =
         }
 
 
-{-| TODO
+{-| Fold over the key-value pairs in a dictionary from lowest key to highest key.
+
+
+    getAges users =
+        Dict.foldl addAge [] users
+
+    addAge _ user ages =
+        user.age :: ages
+
+    -- getAges users == [33,19,28]
+
 -}
 foldl : (a -> b -> acc -> acc) -> acc -> BiDict a b -> acc
 foldl fn zero (BiDict d) =
-    -- TODO anything about the reverse?
     Dict.foldl fn zero d.forward
 
 
-{-| TODO
+{-| Fold over the key-value pairs in a dictionary from highest key to lowest key.
+
+
+    getAges users =
+        Dict.foldr addAge [] users
+
+    addAge _ user ages =
+        user.age :: ages
+
+    -- getAges users == [28,19,33]
+
 -}
 foldr : (a -> b -> acc -> acc) -> acc -> BiDict a b -> acc
 foldr fn zero (BiDict d) =
-    -- TODO anything about the reverse?
     Dict.foldr fn zero d.forward
 
 
-{-| TODO
+{-| Keep only the key-value pairs that pass the given test.
 -}
 filter : (a -> b -> Bool) -> BiDict a b -> BiDict a b
 filter fn (BiDict d) =
@@ -310,31 +359,24 @@ filter fn (BiDict d) =
         |> fromDict
 
 
-{-| TODO
+{-| Partition a dictionary according to some test. The first dictionary
+contains all key-value pairs which passed the test, and the second contains
+the pairs that did not.
 -}
 partition : (a -> b -> Bool) -> BiDict a b -> ( BiDict a b, BiDict a b )
 partition fn (BiDict d) =
+    -- TODO diff instead of throwing away and creating from scratch?
     let
         ( forwardTrue, forwardFalse ) =
             Dict.partition fn d.forward
-
-        ( reverseTrue, reverseFalse ) =
-            Debug.todo "partition.reverse"
     in
-    ( BiDict
-        { d
-            | forward = forwardTrue
-            , reverse = reverseTrue
-        }
-    , BiDict
-        { d
-            | forward = forwardFalse
-            , reverse = reverseFalse
-        }
+    ( fromDict forwardTrue
+    , fromDict forwardFalse
     )
 
 
-{-| TODO
+{-| Combine two dictionaries. If there is a collision, preference is given
+to the first dictionary.
 -}
 union : BiDict a b -> BiDict a b -> BiDict a b
 union (BiDict left) (BiDict right) =
@@ -343,7 +385,8 @@ union (BiDict left) (BiDict right) =
         |> fromDict
 
 
-{-| TODO
+{-| Keep a key-value pair when its key appears in the second dictionary.
+Preference is given to values in the first dictionary.
 -}
 intersect : BiDict a b -> BiDict a b -> BiDict a b
 intersect (BiDict left) (BiDict right) =
@@ -352,7 +395,7 @@ intersect (BiDict left) (BiDict right) =
         |> fromDict
 
 
-{-| TODO
+{-| Keep a key-value pair when its key does not appear in the second dictionary.
 -}
 diff : BiDict a b -> BiDict a b -> BiDict a b
 diff (BiDict left) (BiDict right) =
@@ -361,7 +404,16 @@ diff (BiDict left) (BiDict right) =
         |> fromDict
 
 
-{-| TODO
+{-| The most general way of combining two dictionaries. You provide three
+accumulators for when a given key appears:
+
+1.  Only in the left dictionary.
+2.  In both dictionaries.
+3.  Only in the right dictionary.
+
+You then traverse all the keys from lowest to highest, building up whatever
+you want.
+
 -}
 merge :
     (a -> b1 -> acc -> acc)
@@ -371,5 +423,5 @@ merge :
     -> BiDict a b2
     -> acc
     -> acc
-merge fnLeft fnBoth fnRight left right zero =
-    Debug.todo "merge"
+merge fnLeft fnBoth fnRight (BiDict left) (BiDict right) zero =
+    Dict.merge fnLeft fnBoth fnRight left.forward right.forward zero
