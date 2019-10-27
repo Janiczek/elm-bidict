@@ -1,6 +1,6 @@
 module BiDict.Assoc exposing
     ( BiDict
-    , toDict, fromDict, getReverse, sizeReverse, uniqueValues, toReverseList
+    , toDict, fromDict, getReverse, uniqueValues, uniqueValuesCount, toReverseList
     , empty, singleton, insert, update, remove
     , isEmpty, member, get, size
     , keys, values, toList, fromList
@@ -22,7 +22,7 @@ get rid of the `comparable` constraint on keys that's usually associated with Di
 
 # Differences from Dict
 
-@docs toDict, fromDict, getReverse, sizeReverse, uniqueValues, toReverseList
+@docs toDict, fromDict, getReverse, uniqueValues, uniqueValuesCount, toReverseList
 
 
 # Build
@@ -195,13 +195,6 @@ size (BiDict d) =
 
 {-| TODO
 -}
-sizeReverse : BiDict a b -> Int
-sizeReverse (BiDict d) =
-    Dict.size d.reverse
-
-
-{-| TODO
--}
 keys : BiDict a b -> List a
 keys (BiDict d) =
     Dict.keys d.forward
@@ -219,6 +212,13 @@ values (BiDict d) =
 uniqueValues : BiDict a b -> List b
 uniqueValues (BiDict d) =
     Dict.keys d.reverse
+
+
+{-| TODO
+-}
+uniqueValuesCount : BiDict a b -> Int
+uniqueValuesCount (BiDict d) =
+    Dict.size d.reverse
 
 
 {-| TODO

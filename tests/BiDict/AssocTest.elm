@@ -88,7 +88,7 @@ update msg bidict =
             BiDict.diff bidict bidict2
 
 
-msgToDictMsg : Msg -> Dict a b -> Dict a b
+msgToDictMsg : Msg -> Dict String Int -> Dict String Int
 msgToDictMsg msg dict =
     case msg of
         Insert k v ->
@@ -250,32 +250,86 @@ suite =
             , invariantTest "behaves like dict" app <|
                 \initialBidict msgs finalBidict ->
                     let
-                        initialDict : Dict a b
                         initialDict =
                             BiDict.toDict initialBidict
 
-                        dictMsgFns : List (Dict a b -> Dict a b)
                         dictMsgFns =
                             List.map msgToDictMsg msgs
 
-                        finalDict : Dict a b
                         finalDict =
                             List.foldl
-                                (\dict msgFn -> msgFn dict)
+                                (\msgFn dict -> msgFn dict)
                                 initialDict
                                 dictMsgFns
                     in
-                    1
+                    finalBidict
+                        |> expectEqualToDict finalDict
             ]
-        , describe "empty"
-            [ test "has size 0" <|
+        , describe "toDict"
+            [ invariantTest "have same toLists" app <|
+                \_ _ finalBidict ->
+                    BiDict.toList finalBidict
+                        |> Expect.equalLists (Dict.toList (BiDict.toDict finalBidict))
+            ]
+        , describe "getReverse"
+            [ test "empty" <|
                 \() ->
-                    BiDict.size BiDict.empty
-                        |> Expect.equal 0
+                    BiDict.getReverse 1 BiDict.empty
+                        |> Expect.equal Set.empty
+            , test "bijective" <|
+                \() ->
+                    BiDict.getReverse 1 bijectiveBidict
+                        |> Expect.equal (Set.singleton "A")
+            , test "nonInjective" <|
+                \() ->
+                    BiDict.getReverse 1 nonInjectiveBidict
+                        |> Expect.equal (Set.fromList [ "A", "C" ])
             ]
-
-        -- TODO "getReverse"
-        -- TODO "sizeReverse"
-        -- TODO "uniqueValues"
-        -- TODO "toReverseList"
+        , describe "uniqueValues"
+            [ test "empty" <|
+                \() ->
+                    BiDict.uniqueValues BiDict.empty
+                        |> Expect.equal []
+            , test "bijective" <|
+                \() ->
+                    BiDict.uniqueValues bijectiveBidict
+                        |> List.sort
+                        |> Expect.equal [ 1, 2, 3, 4 ]
+            , test "nonInjective" <|
+                \() ->
+                    BiDict.uniqueValues nonInjectiveBidict
+                        |> List.sort
+                        |> Expect.equal [ 1, 2, 4 ]
+            ]
+        , describe "uniqueValuesCount"
+            [ invariantTest "is count of uniqueValues" app <|
+                \_ _ finalBidict ->
+                    BiDict.uniqueValuesCount finalBidict
+                        |> Expect.equal (List.length (BiDict.uniqueValues finalBidict))
+            ]
+        , describe "toReverseList"
+            [ test "empty" <|
+                \() ->
+                    BiDict.toReverseList BiDict.empty
+                        |> Expect.equal []
+            , test "bijective" <|
+                \() ->
+                    BiDict.toReverseList bijectiveBidict
+                        |> List.sortBy Tuple.first
+                        |> Expect.equal
+                            [ ( 1, Set.singleton "A" )
+                            , ( 2, Set.singleton "B" )
+                            , ( 3, Set.singleton "C" )
+                            , ( 4, Set.singleton "D" )
+                            ]
+            , test "nonInjectiveBidict" <|
+                \() ->
+                    BiDict.toReverseList nonInjectiveBidict
+                        |> List.sortBy Tuple.first
+                        |> Expect.equal
+                            [ ( 1, Set.fromList [ "A", "C" ] )
+                            , ( 2, Set.singleton "B" )
+                            , ( 4, Set.singleton "D" )
+                            ]
+            ]
         ]
