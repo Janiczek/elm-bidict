@@ -134,16 +134,7 @@ insert from to (MultiBiDict d) =
 -}
 update : a -> (Set b -> Set b) -> MultiBiDict a b -> MultiBiDict a b
 update from fn (MultiBiDict d) =
-    Dict.update from
-        (\maybeSet ->
-            case maybeSet of
-                Nothing ->
-                    Just (fn Set.empty)
-
-                Just set ->
-                    Just (fn set)
-        )
-        d.forward
+    Dict.update from (Maybe.map fn) d.forward
         |> fromDict
 
 
@@ -218,7 +209,7 @@ getReverse to (MultiBiDict d) =
 -}
 size : MultiBiDict a b -> Int
 size (MultiBiDict d) =
-    Dict.size d.forward
+    Dict.foldl (\_ set acc -> Set.size set + acc) 0 d.forward
 
 
 {-| Get all of the keys in a dictionary, sorted from lowest to highest.
@@ -315,7 +306,7 @@ fromDict forward =
                                         Just set_ ->
                                             Just (Set.insert key set_)
                                 )
-                                acc
+                                acc_
                         )
                         acc
                         set
