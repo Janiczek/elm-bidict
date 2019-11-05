@@ -242,7 +242,7 @@ suite =
                                 |> BiDict.toReverseList
                                 |> List.foldl (\( _, set ) acc -> Set.size set + acc) 0
                             )
-            , invariantTest "no empty sets" app <|
+            , invariantTest "no reverse empty sets" app <|
                 \_ _ finalBidict ->
                     BiDict.toReverseList finalBidict
                         |> List.all (\( _, set ) -> not (Set.isEmpty set))

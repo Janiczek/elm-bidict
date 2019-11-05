@@ -1,30 +1,31 @@
 module MultiBiDict.Assoc exposing
     ( MultiBiDict
     , toDict, fromDict, getReverse, uniqueValues, uniqueValuesCount, toReverseList
-    , empty, singleton, insert, update, remove
+    , empty, singleton, insert, update, remove, removeAll
     , isEmpty, member, get, size
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
     )
 
-{-| A bidirectional dictionary mapping unique keys to **multiple** values, which
-**maintains a mapping from the values back to keys.**
+{-| A dictionary mapping unique keys to **multiple** values, which
+**maintains a mapping from the values back to keys,** allowing for
+modelling **many-to-many relationships.**
 
 Example usage:
 
-    myMapping : MultiBiDict String Int
-    myMapping =
+    manyToMany : MultiBiDict String Int
+    manyToMany =
         MultiBiDict.empty
             |> MultiBiDict.insert "A" 1
             |> MultiBiDict.insert "B" 2
             |> MultiBiDict.insert "C" 3
             |> MultiBiDict.insert "A" 2
 
-    MultiBiDict.get "A" myMapping
+    MultiBiDict.get "A" manyToMany
     --> Set.fromList [1, 2]
 
-    MultiBiDict.getReverse 2 myMapping
+    MultiBiDict.getReverse 2 manyToMany
     --> Set.fromList ["A", "B"]
 
 This module in particular uses [`assoc-list`](https://package.elm-lang.org/packages/pzp1997/assoc-list/latest/) and [`assoc-set`](https://package.elm-lang.org/packages/erlandsona/assoc-set/latest/)
@@ -44,7 +45,7 @@ associated with Dicts and Sets.
 
 # Build
 
-@docs empty, singleton, insert, update, remove
+@docs empty, singleton, insert, update, remove, removeAll
 
 
 # Query
@@ -73,12 +74,9 @@ import AssocList.Extra as DictExtra
 import AssocSet as Set exposing (Set)
 
 
-{-| A dictionary that holds multiple values per key and allows asking for the
-mappings in reverse direction.
+{-| The underlying data structure. Think about it as
 
-Think about it as
-
-    type alias BiDict a b =
+    type alias MultiBiDict a b =
         { forward : Dict a (Set b) -- just a normal Dict!
         , reverse : Dict b (Set a) -- the reverse mappings!
         }
@@ -150,16 +148,25 @@ normalizeSet set =
         Just set
 
 
-{-| Remove a key-value pair from a dictionary. If the key is not found,
-no changes are made.
+{-| Remove all key-value pairs for the given key from a dictionary. If the key is
+not found, no changes are made.
 -}
-remove : a -> MultiBiDict a b -> MultiBiDict a b
-remove from (MultiBiDict d) =
+removeAll : a -> MultiBiDict a b -> MultiBiDict a b
+removeAll from (MultiBiDict d) =
     MultiBiDict
         { d
             | forward = Dict.remove from d.forward
             , reverse = DictExtra.filterMap (\_ set -> Set.remove from set |> normalizeSet) d.reverse
         }
+
+
+{-| Remove a single key-value pair from a dictionary. If the key is not found,
+no changes are made.
+-}
+remove : a -> b -> MultiBiDict a b -> MultiBiDict a b
+remove from to (MultiBiDict d) =
+    Dict.update from (Maybe.andThen (Set.remove to >> normalizeSet)) d.forward
+        |> fromDict
 
 
 {-| Determine if a dictionary is empty.

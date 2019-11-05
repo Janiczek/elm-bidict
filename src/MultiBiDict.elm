@@ -1,30 +1,31 @@
 module MultiBiDict exposing
     ( MultiBiDict
     , toDict, fromDict, getReverse, uniqueValues, uniqueValuesCount, toReverseList
-    , empty, singleton, insert, update, remove
+    , empty, singleton, insert, update, remove, removeAll
     , isEmpty, member, get, size
     , keys, values, toList, fromList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
     )
 
-{-| A bidirectional dictionary mapping unique keys to **multiple** values, which
-**maintains a mapping from the values back to keys.**
+{-| A dictionary mapping unique keys to **multiple** values, which
+**maintains a mapping from the values back to keys,** allowing for
+modelling **many-to-many relationships.**
 
 Example usage:
 
-    myMapping : MultiBiDict String Int
-    myMapping =
+    manyToMany : MultiBiDict String Int
+    manyToMany =
         MultiBiDict.empty
             |> MultiBiDict.insert "A" 1
             |> MultiBiDict.insert "B" 2
             |> MultiBiDict.insert "C" 3
             |> MultiBiDict.insert "A" 2
 
-    MultiBiDict.get "A" myMapping
+    MultiBiDict.get "A" manyToMany
     --> Set.fromList [1, 2]
 
-    MultiBiDict.getReverse 2 myMapping
+    MultiBiDict.getReverse 2 manyToMany
     --> Set.fromList ["A", "B"]
 
 
@@ -40,7 +41,7 @@ Example usage:
 
 # Build
 
-@docs empty, singleton, insert, update, remove
+@docs empty, singleton, insert, update, remove, removeAll
 
 
 # Query
@@ -69,12 +70,9 @@ import Dict.Extra
 import Set exposing (Set)
 
 
-{-| A dictionary that holds multiple values per key and allows asking for the
-mappings in reverse direction.
+{-| The underlying data structure. Think about it as
 
-Think about it as
-
-    type alias BiDict comparable1 comparable2 =
+    type alias MultiBiDict comparable1 comparable2 =
         { forward : Dict comparable1 (Set comparable2) -- just a normal Dict!
         , reverse : Dict comparable2 (Set comparable1) -- the reverse mappings!
         }
@@ -130,7 +128,7 @@ insert from to (MultiBiDict d) =
 -}
 update : comparable1 -> (Set comparable2 -> Set comparable2) -> MultiBiDict comparable1 comparable2 -> MultiBiDict comparable1 comparable2
 update from fn (MultiBiDict d) =
-    Dict.update from (Maybe.map fn) d.forward
+    Dict.update from (Maybe.andThen (normalizeSet << fn)) d.forward
         |> fromDict
 
 
@@ -146,16 +144,25 @@ normalizeSet set =
         Just set
 
 
-{-| Remove a key-value pair from a dictionary. If the key is not found,
-no changes are made.
+{-| Remove all key-value pairs for the given key from a dictionary. If the key is
+not found, no changes are made.
 -}
-remove : comparable1 -> MultiBiDict comparable1 comparable2 -> MultiBiDict comparable1 comparable2
-remove from (MultiBiDict d) =
+removeAll : comparable1 -> MultiBiDict comparable1 comparable2 -> MultiBiDict comparable1 comparable2
+removeAll from (MultiBiDict d) =
     MultiBiDict
         { d
             | forward = Dict.remove from d.forward
             , reverse = Dict.Extra.filterMap (\_ set -> Set.remove from set |> normalizeSet) d.reverse
         }
+
+
+{-| Remove a single key-value pair from a dictionary. If the key is not found,
+no changes are made.
+-}
+remove : comparable1 -> comparable2 -> MultiBiDict comparable1 comparable2 -> MultiBiDict comparable1 comparable2
+remove from to (MultiBiDict d) =
+    Dict.update from (Maybe.andThen (Set.remove to >> normalizeSet)) d.forward
+        |> fromDict
 
 
 {-| Determine if a dictionary is empty.

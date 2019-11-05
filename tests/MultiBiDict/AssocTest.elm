@@ -51,7 +51,8 @@ type alias Model =
 type Msg
     = Insert String Int
     | UpdateAdd String Int
-    | Remove String
+    | RemoveAll String
+    | Remove String Int
     | MapAdd Int
     | FilterLessThan Int
     | Union Model
@@ -78,8 +79,11 @@ update msg dict =
         UpdateAdd k v ->
             MultiBiDict.update k (Set.map ((+) v)) dict
 
-        Remove k ->
-            MultiBiDict.remove k dict
+        Remove k v ->
+            MultiBiDict.remove k v dict
+
+        RemoveAll k ->
+            MultiBiDict.removeAll k dict
 
         MapAdd n ->
             MultiBiDict.map (\_ v -> v + n) dict
@@ -115,7 +119,10 @@ msgToDictMsg msg dict =
         UpdateAdd k v ->
             Dict.update k (Maybe.map (Set.map ((+) v))) dict
 
-        Remove k ->
+        RemoveAll k ->
+            Dict.remove k dict
+
+        Remove k _ ->
             Dict.remove k dict
 
         MapAdd n ->
@@ -222,7 +229,8 @@ valueFuzzer =
 msgFuzzers =
     { insert = Fuzz.map2 Insert keyFuzzer valueFuzzer
     , updateAdd = Fuzz.map2 UpdateAdd keyFuzzer valueFuzzer
-    , remove = Fuzz.map Remove keyFuzzer
+    , remove = Fuzz.map2 Remove keyFuzzer valueFuzzer
+    , removeAll = Fuzz.map RemoveAll keyFuzzer
     , mapAdd = Fuzz.map MapAdd valueFuzzer
     , filterLessThan = Fuzz.map FilterLessThan valueFuzzer
     , union = Fuzz.map Union initModelFuzzer
@@ -237,6 +245,7 @@ msgFuzzer =
         [ msgFuzzers.insert
         , msgFuzzers.updateAdd
         , msgFuzzers.remove
+        , msgFuzzers.removeAll
         , msgFuzzers.mapAdd
         , msgFuzzers.filterLessThan
         , msgFuzzers.union
@@ -269,26 +278,14 @@ suite =
                             )
             , invariantTest "no empty sets" app <|
                 \_ _ finalMultibidict ->
+                    MultiBiDict.toList finalMultibidict
+                        |> List.all (\( _, set ) -> not (Set.isEmpty set))
+                        |> Expect.true ""
+            , invariantTest "no reverrse empty sets" app <|
+                \_ _ finalMultibidict ->
                     MultiBiDict.toReverseList finalMultibidict
                         |> List.all (\( _, set ) -> not (Set.isEmpty set))
                         |> Expect.true ""
-            , invariantTest "behaves like dict" app <|
-                \initialMultibidict msgs finalMultibidict ->
-                    let
-                        initialDict =
-                            MultiBiDict.toDict initialMultibidict
-
-                        dictMsgFns =
-                            List.map msgToDictMsg msgs
-
-                        finalDict =
-                            List.foldl
-                                (\msgFn dict -> msgFn dict)
-                                initialDict
-                                dictMsgFns
-                    in
-                    finalMultibidict
-                        |> expectEqualToDict finalDict
             ]
         , describe "toDict"
             [ invariantTest "have same toLists" app <|

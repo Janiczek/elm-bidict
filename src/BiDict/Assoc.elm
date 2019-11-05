@@ -8,20 +8,20 @@ module BiDict.Assoc exposing
     , union, intersect, diff, merge
     )
 
-{-| A bidirectional dictionary mapping unique keys to values, which **maintains
-a mapping from the values back to keys.**
+{-| A dictionary that **maintains a mapping from the values back to keys,**
+allowing for modelling **many-to-one relationships.**
 
-You'll most likely use `getReverse` for that:
+Example usage:
 
-    myMapping : BiDict String Int
-    myMapping =
+    manyToOne : BiDict String Int
+    manyToOne =
         BiDict.empty
             |> BiDict.insert "A" 1
             |> BiDict.insert "B" 2
             |> BiDict.insert "C" 1
             |> BiDict.insert "D" 4
 
-    BiDict.getReverse 1 myMapping
+    BiDict.getReverse 1 manyToOne
     --> Set.fromList ["A", "C"]
 
 This module in particular uses [`assoc-list`](https://package.elm-lang.org/packages/pzp1997/assoc-list/latest/) and [`assoc-set`](https://package.elm-lang.org/packages/erlandsona/assoc-set/latest/)
@@ -70,9 +70,7 @@ import AssocList.Extra as DictExtra
 import AssocSet as Set exposing (Set)
 
 
-{-| A dictionary that allows asking for the mappings in reverse direction.
-
-Think about it as
+{-| The underlying data structure. Think about it as
 
     type alias BiDict a b =
         { forward : Dict a b -- just a normal Dict!
