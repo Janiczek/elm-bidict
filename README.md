@@ -1,10 +1,17 @@
 # `Janiczek/elm-bidict`
 
-**A dictionary data structure allowing for many-to-one and many-to-many relationships.**
+**A dictionary data structure allowing for many-to-one, one-to-many and many-to-many relationships.**
 
-Essentially it allows you to ask for the reverse mapping (from values to keys).
+These, along with the ordinary Dict, give you all the relations you might need:
 
-(There are both a `Dict`-using and an `assoc-list`-using variant for each of these. Thus, one needs `comparable` keys and values and the other can hold any types, but has slightly worse performance characteristics.)
+* one-to-one: `Dict`
+* many-to-one: `BiDict`
+* one-to-many: `MultiDict`
+* many-to-many: `MultiBiDict`
+
+The `many-to-*` variants allow you to ask for the reverse mapping (from values to keys) - see the `getReverse` functions.
+
+There are both a `Dict`-using and an `assoc-list`-using variant for each of these. Thus, one needs `comparable` keys and values and the other can hold any types, but has slightly worse performance characteristics.
 
 ### Many to one - BiDict
 
@@ -17,16 +24,26 @@ manyToOne =
         |> BiDict.insert "C" 1
         |> BiDict.insert "D" 4
 
-BiDict.get "A" manyToOne
---> Just 1 -- just like Dict!
-
 BiDict.getReverse 1 manyToOne
 --> Set.fromList ["A", "C"]
 ```
 
-### Many to many - MultiBiDict
+### One to many - MultiDict
 
-There is also `MultiBiDict`: it not only remembers the reverse mapping, it also **allows you to have multiple values per key:**
+```elm
+oneToMany : MultiDict String Int
+oneToMany =
+    MultiDict.empty
+        |> MultiDict.insert "A" 1
+        |> MultiDict.insert "B" 2
+        |> MultiDict.insert "A" 3
+        |> MultiDict.insert "D" 4
+
+MultiDict.get "A" oneToMany
+--> Set.fromList [1, 3]
+```
+
+### Many to many - MultiBiDict
 
 ```elm
 manyToMany : MultiBiDict String Int
