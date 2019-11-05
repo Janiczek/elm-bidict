@@ -79,7 +79,7 @@ mappings in reverse direction.
 Think about it as
 
     type alias BiDict a b =
-        { forward : Dict a b -- just a normal Dict!
+        { forward : Dict a (Set b) -- just a normal Dict!
         , reverse : Dict b (Set a) -- the reverse mappings!
         }
 

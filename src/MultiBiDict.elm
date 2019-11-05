@@ -75,7 +75,7 @@ mappings in reverse direction.
 Think about it as
 
     type alias BiDict comparable1 comparable2 =
-        { forward : Dict comparable1 comparable2 -- just a normal Dict!
+        { forward : Dict comparable1 (Set comparable2) -- just a normal Dict!
         , reverse : Dict comparable2 (Set comparable1) -- the reverse mappings!
         }
 
