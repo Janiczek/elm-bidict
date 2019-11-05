@@ -27,10 +27,10 @@ myMapping =
         |> MultiBiDict.insert "A" 2
 
 MultiBiDict.get "A" myMapping
---> Set.frmoList [1, 2]
+--> Set.fromList [1, 2]
 
 MultiBiDict.getReverse 2 myMapping
---> Set.frmoList ["A", "B"]
+--> Set.fromList ["A", "B"]
 ```
 
 There are both a `Dict`-using and an `assoc-list`-using variant for each of these. Thus, one needs `comparable` keys and values and the other can hold any types, but has slightly worse performance characteristics.
