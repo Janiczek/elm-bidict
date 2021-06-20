@@ -357,13 +357,19 @@ foldr fn zero (MultiBiDict d) =
     Dict.foldr fn zero d.forward
 
 
-{-| Keep only the key-value pairs that pass the given test.
+{-| Keep only the mappings that pass the given test.
 -}
-filter : (a -> Set b -> Bool) -> MultiBiDict a b -> MultiBiDict a b
+filter : (a -> b -> Bool) -> MultiBiDict a b -> MultiBiDict a b
 filter fn (MultiBiDict d) =
-    -- TODO diff instead of throwing away and creating from scratch?
-    Dict.filter fn d.forward
-        |> fromDict
+    Dict.toList d.forward
+        |> List.filterMap
+            (\( key, values_ ) ->
+                values_
+                    |> Set.filter (fn key)
+                    |> normalizeSet
+                    |> Maybe.map (Tuple.pair key)
+            )
+        |> fromList
 
 
 {-| Partition a dictionary according to some test. The first dictionary

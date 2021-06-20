@@ -277,11 +277,19 @@ foldr fn zero (MultiDict d) =
     Dict.foldr fn zero d
 
 
-{-| Keep only the key-value pairs that pass the given test.
+{-| Keep only the mappings that pass the given test.
 -}
-filter : (comparable1 -> Set comparable2 -> Bool) -> MultiDict comparable1 comparable2 -> MultiDict comparable1 comparable2
+filter : (comparable1 -> comparable2 -> Bool) -> MultiDict comparable1 comparable2 -> MultiDict comparable1 comparable2
 filter fn (MultiDict d) =
-    MultiDict <| Dict.filter fn d
+    Dict.toList d
+        |> List.filterMap
+            (\( key, values_ ) ->
+                values_
+                    |> Set.filter (fn key)
+                    |> normalizeSet
+                    |> Maybe.map (Tuple.pair key)
+            )
+        |> fromList
 
 
 {-| Partition a dictionary according to some test. The first dictionary

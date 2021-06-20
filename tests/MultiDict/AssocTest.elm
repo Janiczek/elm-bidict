@@ -89,7 +89,7 @@ update msg dict =
             MultiDict.map (\_ v -> v + n) dict
 
         FilterLessThan n ->
-            MultiDict.filter (\_ set -> not <| Set.isEmpty <| Set.filter (\v -> v < n) set) dict
+            MultiDict.filter (\_ v -> v < n) dict
 
         Union dict2 ->
             MultiDict.union dict dict2

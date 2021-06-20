@@ -42,7 +42,7 @@ msgToDictMsg msg multiBiDict =
             MultiBiDict.map (\_ v -> v + n) multiBiDict
 
         FilterLessThan n ->
-            MultiBiDict.filter (\_ set -> not <| Set.isEmpty <| Set.filter (\v -> v < n) set) multiBiDict
+            MultiBiDict.filter (\_ v -> v < n) multiBiDict
 
         Union assocBidict2 ->
             MultiBiDict.union multiBiDict (assocBiDictToBiDict assocBidict2)
