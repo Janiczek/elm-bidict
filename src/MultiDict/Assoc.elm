@@ -3,7 +3,7 @@ module MultiDict.Assoc exposing
     , toDict, fromDict
     , empty, singleton, insert, update, remove, removeAll
     , isEmpty, member, get, size
-    , keys, values, toList, fromList
+    , keys, values, toList, fromList, fromFlatList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
     )
@@ -51,7 +51,7 @@ associated with Dicts and Sets.
 
 # Lists
 
-@docs keys, values, toList, fromList
+@docs keys, values, toList, fromList, fromFlatList
 
 
 # Transform
@@ -223,6 +223,30 @@ fromList : List ( a, Set b ) -> MultiDict a b
 fromList list =
     Dict.fromList list
         |> fromDict
+
+
+{-| Convert an association list into a dictionary.
+
+    fromFlatList
+        [ ( "foo", 1 )
+        , ( "bar", 2 )
+        , ( "foo", 3 )
+        ]
+
+results in the same dict as
+
+    fromList
+        [ ( "foo", Set.fromList [ 1, 3 ] )
+        , ( "bar", Set.fromList [ 2 ] )
+        ]
+
+-}
+fromFlatList : List ( a, b ) -> MultiDict a b
+fromFlatList list =
+    List.foldl
+        (\( k, v ) -> insert k v)
+        empty
+        list
 
 
 {-| Apply a function to all values in a dictionary.

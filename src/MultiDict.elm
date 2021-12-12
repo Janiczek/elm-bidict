@@ -3,7 +3,7 @@ module MultiDict exposing
     , toDict, fromDict
     , empty, singleton, insert, update, remove, removeAll
     , isEmpty, member, get, size
-    , keys, values, toList, fromList
+    , keys, values, toList, fromList, fromFlatList
     , map, foldl, foldr, filter, partition
     , union, intersect, diff, merge
     )
@@ -47,7 +47,7 @@ Example usage:
 
 # Lists
 
-@docs keys, values, toList, fromList
+@docs keys, values, toList, fromList, fromFlatList
 
 
 # Transform
@@ -63,6 +63,7 @@ Example usage:
 
 import Dict exposing (Dict)
 import Dict.Extra
+import List.Extra
 import Set exposing (Set)
 
 
@@ -219,6 +220,36 @@ toList (MultiDict d) =
 fromList : List ( comparable1, Set comparable2 ) -> MultiDict comparable1 comparable2
 fromList list =
     Dict.fromList list
+        |> fromDict
+
+
+{-| Convert an association list into a dictionary.
+
+    fromFlatList
+        [ ( "foo", 1 )
+        , ( "bar", 2 )
+        , ( "foo", 3 )
+        ]
+
+results in the same dict as
+
+    fromList
+        [ ( "foo", Set.fromList [ 1, 3 ] )
+        , ( "bar", Set.fromList [ 2 ] )
+        ]
+
+-}
+fromFlatList : List ( comparable1, comparable2 ) -> MultiDict comparable1 comparable2
+fromFlatList list =
+    list
+        |> List.Extra.gatherEqualsBy Tuple.first
+        |> List.map
+            (\( ( key, _ ) as x, xs ) ->
+                ( key
+                , Set.fromList <| List.map Tuple.second <| x :: xs
+                )
+            )
+        |> Dict.fromList
         |> fromDict
 
 

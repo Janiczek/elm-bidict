@@ -256,4 +256,17 @@ suite =
                     MultiDict.toList finalMultiDict
                         |> Expect.equalLists (Dict.toList (MultiDict.toDict finalMultiDict))
             ]
+        , test "fromFlatList doc example" <|
+            \() ->
+                MultiDict.fromFlatList
+                    [ ( "foo", 1 )
+                    , ( "bar", 2 )
+                    , ( "foo", 3 )
+                    ]
+                    |> Expect.equal
+                        (MultiDict.fromList
+                            [ ( "foo", Set.fromList [ 1, 3 ] )
+                            , ( "bar", Set.fromList [ 2 ] )
+                            ]
+                        )
         ]
