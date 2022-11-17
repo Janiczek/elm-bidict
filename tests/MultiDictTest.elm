@@ -99,4 +99,14 @@ suite =
                             , ( "bar", Set.fromList [ 2 ] )
                             ]
                         )
+        , test "empty isEmpty" <|
+            \() ->
+                MultiDict.empty
+                    |> MultiDict.isEmpty
+                    |> Expect.equal True
+        , test "singleton is not empty" <|
+            \() ->
+                MultiDict.singleton 1 2
+                    |> MultiDict.isEmpty
+                    |> Expect.equal False
         ]
