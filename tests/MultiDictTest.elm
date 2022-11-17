@@ -1,6 +1,7 @@
 module MultiDictTest exposing (..)
 
 import App.Dict
+import App.MultiDict
 import ArchitectureTest exposing (invariantTest, msgTest)
 import AssocList
 import AssocSet
@@ -22,6 +23,18 @@ assocMultiDictToMultiDict assocMultiDict =
         |> List.map (Tuple.mapSecond (AssocSet.toList >> Set.fromList))
         |> Dict.fromList
         |> MultiDict.fromDict
+
+
+toFlattenedList : MultiDict String Int -> List ( String, Int )
+toFlattenedList dict =
+    dict
+        |> MultiDict.toList
+        |> List.concatMap
+            (\( k, set ) ->
+                set
+                    |> Set.toList
+                    |> List.map (\v -> ( k, v ))
+            )
 
 
 msgToDictMsg : Msg -> MultiDict String Int -> MultiDict String Int
@@ -149,14 +162,7 @@ suite =
 
                     multiDictList : List ( String, Int )
                     multiDictList =
-                        finalMultidict
-                            |> MultiDict.toList
-                            |> List.concatMap
-                                (\( k, set ) ->
-                                    set
-                                        |> Set.toList
-                                        |> List.map (\v -> ( k, v ))
-                                )
+                        toFlattenedList finalMultidict
 
                     dictList : List ( String, Int )
                     dictList =
@@ -187,4 +193,12 @@ suite =
                 MultiDict.singleton 1 2
                     |> MultiDict.isEmpty
                     |> Expect.equal False
+        , invariantTest "MultiDict.size == List.length of flattened dict" App.MultiDict.app <|
+            \_ _ multiDict ->
+                MultiDict.size multiDict
+                    |> Expect.equal
+                        (multiDict
+                            |> toFlattenedList
+                            |> List.length
+                        )
         ]
