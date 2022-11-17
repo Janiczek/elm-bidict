@@ -5,6 +5,7 @@ import AssocList as Dict exposing (Dict)
 import AssocSet as Set exposing (Set)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
+import Helpers exposing (..)
 import MultiDict.Assoc as MultiDict exposing (MultiDict)
 import Test exposing (Test, describe, fuzz, fuzz2, test, todo)
 
@@ -163,14 +164,8 @@ initModelFuzzer =
                     )
             )
             (Fuzz.list keyFuzzer)
-            (Fuzz.list (nonemptySetFuzzer valueFuzzer))
+            (Fuzz.list (nonemptyAssocSetFuzzer valueFuzzer))
         ]
-
-
-nonemptySetFuzzer : Fuzzer comparable -> Fuzzer (Set comparable)
-nonemptySetFuzzer fuzzer =
-    Fuzz.map2 (::) fuzzer (Fuzz.list fuzzer)
-        |> Fuzz.map Set.fromList
 
 
 {-| Start with initModelFuzzer, add random Msgs, return the final model

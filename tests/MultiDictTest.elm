@@ -1,9 +1,10 @@
 module MultiDictTest exposing (..)
 
+import App.Dict
 import ArchitectureTest exposing (invariantTest, msgTest)
 import AssocList
 import AssocSet
-import Dict
+import Dict exposing (Dict)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
 import MultiDict exposing (MultiDict)
@@ -54,8 +55,8 @@ msgToDictMsg msg multiDict =
             MultiDict.diff multiDict (assocMultiDictToMultiDict assocMultidict2)
 
 
-expectEqualToMultiDict : MultiDict comparable1 comparable2 -> MultiDict.Assoc.MultiDict comparable1 comparable2 -> Expectation
-expectEqualToMultiDict multiDict assocMultidict =
+expectEqualToAssocMultiDict : MultiDict comparable1 comparable2 -> MultiDict.Assoc.MultiDict comparable1 comparable2 -> Expectation
+expectEqualToAssocMultiDict multiDict assocMultidict =
     MultiDict.toList multiDict
         |> List.map (Tuple.mapSecond (Set.toList >> List.sort))
         |> List.sort
@@ -64,6 +65,50 @@ expectEqualToMultiDict multiDict assocMultidict =
                 |> List.map (Tuple.mapSecond (AssocSet.toList >> List.sort))
                 |> List.sort
             )
+
+
+dictToMultiDict : Dict String Int -> MultiDict String Int
+dictToMultiDict dict =
+    dict
+        |> Dict.toList
+        |> List.map (Tuple.mapSecond Set.singleton)
+        |> MultiDict.fromList
+
+
+runDictMsgOnMultiDict : App.Dict.Msg -> MultiDict String Int -> MultiDict String Int
+runDictMsgOnMultiDict msg multiDict =
+    let
+        withoutCollision k d =
+            if MultiDict.member k d then
+                MultiDict.removeAll k d
+
+            else
+                d
+    in
+    case msg of
+        App.Dict.Insert k v ->
+            MultiDict.insert k v (withoutCollision k multiDict)
+
+        App.Dict.UpdateAdd k v ->
+            MultiDict.update k (Set.map ((+) v)) multiDict
+
+        App.Dict.Remove k ->
+            MultiDict.removeAll k multiDict
+
+        App.Dict.MapAdd n ->
+            MultiDict.map (\_ v -> v + n) multiDict
+
+        App.Dict.FilterLessThan n ->
+            MultiDict.filter (\_ v -> v < n) multiDict
+
+        App.Dict.Union dict2 ->
+            MultiDict.union multiDict (dictToMultiDict dict2)
+
+        App.Dict.Intersect dict2 ->
+            MultiDict.intersect multiDict (dictToMultiDict dict2)
+
+        App.Dict.Diff dict2 ->
+            MultiDict.diff multiDict (dictToMultiDict dict2)
 
 
 suite : Test
@@ -85,7 +130,40 @@ suite =
                             dictMsgFns
                 in
                 finalAssocMultidict
-                    |> expectEqualToMultiDict finalMultidict
+                    |> expectEqualToAssocMultiDict finalMultidict
+        , invariantTest "behaves like a normal Dict if we don't add multiple items to a key"
+            App.Dict.app
+          <|
+            \initialDict msgs finalDict ->
+                let
+                    initialMultidict : MultiDict String Int
+                    initialMultidict =
+                        dictToMultiDict initialDict
+
+                    finalMultidict : MultiDict String Int
+                    finalMultidict =
+                        List.foldl
+                            runDictMsgOnMultiDict
+                            initialMultidict
+                            msgs
+
+                    multiDictList : List ( String, Int )
+                    multiDictList =
+                        finalMultidict
+                            |> MultiDict.toList
+                            |> List.concatMap
+                                (\( k, set ) ->
+                                    set
+                                        |> Set.toList
+                                        |> List.map (\v -> ( k, v ))
+                                )
+
+                    dictList : List ( String, Int )
+                    dictList =
+                        Dict.toList finalDict
+                in
+                multiDictList
+                    |> Expect.equalLists dictList
         , test "fromFlatList doc example" <|
             \() ->
                 MultiDict.fromFlatList
