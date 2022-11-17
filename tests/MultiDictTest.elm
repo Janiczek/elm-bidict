@@ -221,4 +221,12 @@ suite =
 
                     _ ->
                         Expect.fail "This should have been a Remove"
+        , invariantTest "keys == toList >> List.map Tuple.first" App.MultiDict.app <|
+            \_ _ dict ->
+                MultiDict.keys dict
+                    |> Expect.equalLists
+                        (dict
+                            |> MultiDict.toList
+                            |> List.map Tuple.first
+                        )
         ]
