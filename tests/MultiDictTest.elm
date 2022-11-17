@@ -253,4 +253,28 @@ suite =
                             , ( "D", Set.fromList [ 2 ] )
                             ]
                         )
+        , test "foldl example" <|
+            \() ->
+                MultiDict.foldl
+                    (\_ vs acc -> acc ++ Set.toList vs)
+                    []
+                    (MultiDict.empty
+                        |> MultiDict.insert "A" 1
+                        |> MultiDict.insert "B" 2
+                        |> MultiDict.insert "A" 3
+                        |> MultiDict.insert "D" 2
+                    )
+                    |> Expect.equal [ 1, 3, 2, 2 ]
+        , test "foldr example" <|
+            \() ->
+                MultiDict.foldr
+                    (\_ vs acc -> acc ++ Set.toList vs)
+                    []
+                    (MultiDict.empty
+                        |> MultiDict.insert "A" 1
+                        |> MultiDict.insert "B" 2
+                        |> MultiDict.insert "A" 3
+                        |> MultiDict.insert "D" 2
+                    )
+                    |> Expect.equal [ 2, 2, 1, 3 ]
         ]
