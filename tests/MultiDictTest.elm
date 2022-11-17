@@ -277,4 +277,19 @@ suite =
                         |> MultiDict.insert "D" 2
                     )
                     |> Expect.equal [ 2, 2, 1, 3 ]
+        , invariantTest "partition is like List.partition" App.MultiDict.app <|
+            \_ _ dict ->
+                let
+                    pred key =
+                        String.startsWith "b" key
+                in
+                MultiDict.partition (\key _ -> pred key) dict
+                    |> Expect.equal
+                        (dict
+                            |> MultiDict.toList
+                            |> List.partition (\( key, _ ) -> pred key)
+                            |> Tuple.mapBoth
+                                MultiDict.fromList
+                                MultiDict.fromList
+                        )
         ]
