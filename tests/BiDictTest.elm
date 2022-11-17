@@ -1,6 +1,6 @@
 module BiDictTest exposing (..)
 
-import ArchitectureTest exposing (invariantTest, msgTest)
+import ArchitectureTest exposing (invariantTest)
 import AssocList
 import BiDict exposing (BiDict)
 import BiDict.Assoc

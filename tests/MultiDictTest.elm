@@ -10,7 +10,7 @@ import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
 import MultiDict exposing (MultiDict)
 import MultiDict.Assoc
-import MultiDict.AssocTest exposing (Msg(..))
+import MultiDict.AssocTest
 import Set
 import Test exposing (Test, describe, fuzz, fuzz2, test, todo)
 
@@ -37,34 +37,34 @@ toFlattenedList dict =
             )
 
 
-msgToDictMsg : Msg -> MultiDict String Int -> MultiDict String Int
+msgToDictMsg : MultiDict.AssocTest.Msg -> MultiDict String Int -> MultiDict String Int
 msgToDictMsg msg multiDict =
     case msg of
-        Insert k v ->
+        MultiDict.AssocTest.Insert k v ->
             MultiDict.insert k v multiDict
 
-        UpdateAdd k v ->
+        MultiDict.AssocTest.UpdateAdd k v ->
             MultiDict.update k (Set.map ((+) v)) multiDict
 
-        Remove k v ->
+        MultiDict.AssocTest.Remove k v ->
             MultiDict.remove k v multiDict
 
-        RemoveAll k ->
+        MultiDict.AssocTest.RemoveAll k ->
             MultiDict.removeAll k multiDict
 
-        MapAdd n ->
+        MultiDict.AssocTest.MapAdd n ->
             MultiDict.map (\_ v -> v + n) multiDict
 
-        FilterLessThan n ->
+        MultiDict.AssocTest.FilterLessThan n ->
             MultiDict.filter (\_ v -> v < n) multiDict
 
-        Union assocMultidict2 ->
+        MultiDict.AssocTest.Union assocMultidict2 ->
             MultiDict.union multiDict (assocMultiDictToMultiDict assocMultidict2)
 
-        Intersect assocMultidict2 ->
+        MultiDict.AssocTest.Intersect assocMultidict2 ->
             MultiDict.intersect multiDict (assocMultiDictToMultiDict assocMultidict2)
 
-        Diff assocMultidict2 ->
+        MultiDict.AssocTest.Diff assocMultidict2 ->
             MultiDict.diff multiDict (assocMultiDictToMultiDict assocMultidict2)
 
 
@@ -201,4 +201,24 @@ suite =
                             |> toFlattenedList
                             |> List.length
                         )
+        , msgTest "get after insert succeeds" App.MultiDict.app App.MultiDict.msgFuzzers.insert <|
+            \_ msg finalDict ->
+                case msg of
+                    App.MultiDict.Insert k v ->
+                        MultiDict.get k finalDict
+                            |> Set.member v
+                            |> Expect.equal True
+
+                    _ ->
+                        Expect.fail "This should have been an Insert"
+        , msgTest "get after remove fails" App.MultiDict.app App.MultiDict.msgFuzzers.remove <|
+            \_ msg finalDict ->
+                case msg of
+                    App.MultiDict.Remove k v ->
+                        MultiDict.get k finalDict
+                            |> Set.member v
+                            |> Expect.equal False
+
+                    _ ->
+                        Expect.fail "This should have been a Remove"
         ]

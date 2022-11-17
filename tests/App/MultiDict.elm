@@ -1,4 +1,4 @@
-module App.MultiDict exposing (Model, Msg(..), app, update)
+module App.MultiDict exposing (Model, Msg(..), app, msgFuzzers, update)
 
 import ArchitectureTest
 import Fuzz exposing (Fuzzer)
