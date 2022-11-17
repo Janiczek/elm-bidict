@@ -292,4 +292,29 @@ suite =
                                 MultiDict.fromList
                                 MultiDict.fromList
                         )
+        , test "merge example" <|
+            \() ->
+                MultiDict.merge
+                    (\k _ acc -> acc ++ [ "Only first: " ++ k ])
+                    (\k _ _ acc -> acc ++ [ "Both: " ++ k ])
+                    (\k _ acc -> acc ++ [ "Only second: " ++ k ])
+                    (MultiDict.empty
+                        |> MultiDict.insert "A" 1
+                        |> MultiDict.insert "B" 2
+                        |> MultiDict.insert "A" 3
+                        |> MultiDict.insert "D" 2
+                    )
+                    (MultiDict.empty
+                        |> MultiDict.insert "A" 1
+                        |> MultiDict.insert "C" 2
+                        |> MultiDict.insert "C" 3
+                        |> MultiDict.insert "D" 2
+                    )
+                    []
+                    |> Expect.equalLists
+                        [ "Both: A"
+                        , "Only first: B"
+                        , "Only second: C"
+                        , "Both: D"
+                        ]
         ]
