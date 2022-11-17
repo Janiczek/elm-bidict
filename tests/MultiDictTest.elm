@@ -229,4 +229,12 @@ suite =
                             |> MultiDict.toList
                             |> List.map Tuple.first
                         )
+        , invariantTest "values == toList >> List.map Tuple.first" App.MultiDict.app <|
+            \_ _ dict ->
+                MultiDict.values dict
+                    |> Expect.equalLists
+                        (dict
+                            |> toFlattenedList
+                            |> List.map Tuple.second
+                        )
         ]
