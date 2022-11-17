@@ -1,4 +1,5 @@
-elm-stuff
+elm-stuff/
 node_modules
 docs.json
 yarn.lock
+.coverage/
