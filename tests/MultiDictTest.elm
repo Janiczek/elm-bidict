@@ -237,4 +237,20 @@ suite =
                             |> toFlattenedList
                             |> List.map Tuple.second
                         )
+        , test "toDict example" <|
+            \() ->
+                MultiDict.toDict
+                    (MultiDict.empty
+                        |> MultiDict.insert "A" 1
+                        |> MultiDict.insert "B" 2
+                        |> MultiDict.insert "A" 3
+                        |> MultiDict.insert "D" 2
+                    )
+                    |> Expect.equal
+                        (Dict.fromList
+                            [ ( "A", Set.fromList [ 1, 3 ] )
+                            , ( "B", Set.fromList [ 2 ] )
+                            , ( "D", Set.fromList [ 2 ] )
+                            ]
+                        )
         ]
