@@ -248,7 +248,7 @@ suite =
                 \_ _ finalMultiDict ->
                     MultiDict.toList finalMultiDict
                         |> List.all (\( _, set ) -> not (Set.isEmpty set))
-                        |> Expect.true ""
+                        |> Expect.equal True
             ]
         , describe "toDict"
             [ invariantTest "have same toLists" app <|

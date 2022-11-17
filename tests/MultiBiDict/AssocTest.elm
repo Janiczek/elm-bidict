@@ -280,12 +280,12 @@ suite =
                 \_ _ finalMultibidict ->
                     MultiBiDict.toList finalMultibidict
                         |> List.all (\( _, set ) -> not (Set.isEmpty set))
-                        |> Expect.true ""
+                        |> Expect.equal True
             , invariantTest "no reverrse empty sets" app <|
                 \_ _ finalMultibidict ->
                     MultiBiDict.toReverseList finalMultibidict
                         |> List.all (\( _, set ) -> not (Set.isEmpty set))
-                        |> Expect.true ""
+                        |> Expect.equal True
             ]
         , describe "toDict"
             [ invariantTest "have same toLists" app <|

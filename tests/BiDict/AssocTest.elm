@@ -246,7 +246,7 @@ suite =
                 \_ _ finalBidict ->
                     BiDict.toReverseList finalBidict
                         |> List.all (\( _, set ) -> not (Set.isEmpty set))
-                        |> Expect.true ""
+                        |> Expect.equal True
             , invariantTest "behaves like dict" app <|
                 \initialBidict msgs finalBidict ->
                     let
