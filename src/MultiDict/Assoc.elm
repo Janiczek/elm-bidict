@@ -171,9 +171,9 @@ dictionary.
 
     animals = fromList [ ("Tom", Cat), ("Jerry", Mouse) ]
 
-    get "Tom"   animals == Just Cat
-    get "Jerry" animals == Just Mouse
-    get "Spike" animals == Nothing
+    get "Tom"   animals == AssocSet.singleton Cat
+    get "Jerry" animals == AssocSet.singleton Mouse
+    get "Spike" animals == AssocSet.empty
 
 -}
 get : a -> MultiDict a b -> Set b
