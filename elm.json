@@ -3,7 +3,7 @@
     "name": "Janiczek/elm-bidict",
     "summary": "A bidirectional Dict data structure",
     "license": "BSD-3-Clause",
-    "version": "3.1.0",
+    "version": "3.1.1",
     "exposed-modules": [
         "BiDict",
         "BiDict.Assoc",
@@ -22,7 +22,7 @@
         "skyqrose/assoc-list-extra": "1.0.0 <= v < 2.0.0"
     },
     "test-dependencies": {
-        "elm-explorations/test": "2.0.1 <= v < 3.0.0",
-        "Janiczek/architecture-test": "2.1.1 <= v < 3.0.0"
+        "Janiczek/architecture-test": "2.1.1 <= v < 3.0.0",
+        "elm-explorations/test": "2.0.1 <= v < 3.0.0"
     }
 }
