@@ -167,11 +167,11 @@ member from (MultiDict d) =
 `Nothing`. This is useful when you are not sure if a key will be in the
 dictionary.
 
-    animals = fromList [ ("Tom", Cat), ("Jerry", Mouse) ]
+    animals = fromList [ ("Tom", "cat"), ("Jerry", "mouse") ]
 
-    get "Tom"   animals == Just Cat
-    get "Jerry" animals == Just Mouse
-    get "Spike" animals == Nothing
+    get "Tom"   animals == Set.singleton "cat"
+    get "Jerry" animals == Set.singleton "mouse"
+    get "Spike" animals == Set.empty
 
 -}
 get : comparable1 -> MultiDict comparable1 comparable2 -> Set comparable2
